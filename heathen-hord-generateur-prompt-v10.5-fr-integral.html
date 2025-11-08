@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Heathen Hord — Générateur de Prompt (v10.5 FR‑INTÉGRAL)</title>
+  <style>
+    :root{
+      --bg:#0b1020; --panel:#121833; --ink:#e7e9ef; --muted:#9aa4bf;
+      --accent:#3a68ff; --line:#263056; --ok:#42d392; --warn:#ffb454;
+    }
+    *{box-sizing:border-box}
+    body{margin:0; font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Arial,"Apple Color Emoji","Segoe UI Emoji"; background:var(--bg); color:var(--ink);}
+    header{padding:1.2rem 1.4rem; border-bottom:1px solid var(--line); display:flex; align-items:center; gap:.8rem}
+    header h1{font-size:1.1rem; margin:0}
+    main{display:grid; grid-template-columns: 1fr; gap:1rem; padding:1rem;}
+    @media(min-width:1000px){ main{ grid-template-columns: 500px 1fr;} }
+    .card{background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:1rem; box-shadow:0 4px 20px rgba(0,0,0,.15)}
+    .row{display:grid; grid-template-columns: 1fr 1fr; gap:.6rem}
+    label{display:block; font-size:.86rem; color:var(--muted); margin:.35rem 0 .25rem}
+    input[type="text"], select, textarea{
+      width:100%; background:#0f1630; color:var(--ink); border:1px solid var(--line);
+      border-radius:10px; padding:.65rem .7rem; font-size:.95rem;
+    }
+    textarea{height:180px; resize:vertical}
+    .hint{font-size:.85rem; color:var(--muted)}
+    .btns{display:flex; flex-wrap:wrap; gap:.5rem; margin-top:.8rem}
+    button{
+      background:var(--accent); color:white; border:0; border-radius:10px; padding:.65rem .9rem; cursor:pointer; font-weight:600;
+    }
+    button.ghost{background:transparent; color:var(--ink); border:1px solid var(--line)}
+    button.ok{background:var(--ok); color:#08130d}
+    button.warn{background:var(--warn); color:#231a00}
+    .output textarea{width:100%; height:60vh; border:0; background:#0a122a; color:var(--ink); padding:1rem; font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; font-size:.95rem}
+    .pill{display:inline-flex; align-items:center; gap:.4rem; border:1px solid var(--line); border-radius:999px; padding:.25rem .55rem; font-size:.8rem; color:var(--muted)}
+    .footer{padding:1rem; text-align:center; color:var(--muted); font-size:.85rem}
+    .small{font-size:.82rem}
+  </style>
+</head>
+<body>
+  <header>
+    <div style="font-size:1.4rem">⚔️</div>
+    <h1>Heathen Hord — Générateur de Prompt <span class="pill">v10.5 FR‑INTÉGRAL</span></h1>
+  </header>
+
+  <main>
+    <section class="card">
+      <div class="row">
+        <div>
+          <label for="type">TYPE</label>
+          <select id="type">
+            <option>TACTIQUE</option>
+            <option>ANNONCE</option>
+            <option>MOTIVATION</option>
+            <option>DIPLOMATIE</option>
+            <option>CÉLÉBRATION</option>
+          </select>
+        </div>
+        <div>
+          <label for="theme">THÈME</label>
+          <input id="theme" type="text" placeholder="Bataille d'Arène">
+        </div>
+      </div>
+
+      <div class="row">
+        <div>
+          <label for="objectif">OBJECTIF</label>
+          <select id="objectif">
+            <option>RAPPELER</option>
+            <option>MOTIVER</option>
+            <option>INFORMER</option>
+            <option>FÉLICITER</option>
+            <option>ALERTER</option>
+          </select>
+        </div>
+        <div>
+          <label for="ton">TON</label>
+          <select id="ton">
+            <option>FÉDÉRATEUR</option>
+            <option>ÉNERGIQUE</option>
+            <option>DIPLOMATIQUE</option>
+            <option>FACTUEL</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="row">
+        <div>
+          <label for="urgence">URGENCE</label>
+          <select id="urgence">
+            <option>OUI</option>
+            <option>NON</option>
+          </select>
+        </div>
+        <div>
+          <label for="version">VERSION</label>
+          <input id="version" type="text" value="v10">
+        </div>
+      </div>
+
+      <div class="row">
+        <div>
+          <label for="auteur">AUTEUR</label>
+          <input id="auteur" type="text" value="Vidou, R4 Heathen Hord">
+        </div>
+        <div>
+          <label for="lang">LANGUE DE SORTIE (ISO)</label>
+          <input id="lang" type="text" value="FR" placeholder="FR">
+        </div>
+      </div>
+
+      <label for="details">DÉTAILS (une puce par ligne)</label>
+      <textarea id="details">- Combattez le plus tard possible avant la réinitialisation du serveur
+- N'attaquez jamais un membre du même serveur
+- Restons unis pour grimper au classement ensemble
+- Gardez un canal ouvert pour la coordination d'équipe</textarea>
+
+      <div class="row">
+        <div>
+          <label for="format">FORMAT</label>
+          <select id="format">
+            <option>COMPLET</option>
+            <option>COURT</option>
+          </select>
+        </div>
+        <div>
+          <label>&nbsp;</label>
+          <div class="btns">
+            <button class="ok" id="buildBtn">Générer le YAML</button>
+            <button class="ghost" id="resetBtn" type="button">Réinitialiser</button>
+          </div>
+        </div>
+      </div>
+
+      <p class="hint small">Astuce : vous pouvez coller votre ancien YAML dans les DÉTAILS pour garder une trace ; le CHANGELOG sera calculé côté ChatGPT lorsque vous renverrez le nouveau bloc.</p>
+    </section>
+
+    <section class="card">
+      <h3 style="margin-top:0">YAML généré</h3>
+      <div class="output">
+        <textarea id="yamlOut" readonly placeholder="Cliquez sur « Générer le YAML »..."></textarea>
+      </div>
+      <div class="btns">
+        <button id="copyBtn">📋 Copier le YAML</button>
+        <button id="downloadTxt" class="ghost">⬇️ Télécharger .txt</button>
+        <button id="downloadHtml" class="ghost">⬇️ Télécharger cette page .html</button>
+      </div>
+      <p class="hint">Collez le YAML dans ChatGPT. Le prompt est auto‑porteur et génère le courrier long + message court + changelog.</p>
+    </section>
+  </main>
+
+  <div class="footer">⚔️ Heathen Hord — Générateur de Prompt. Copie fiable (Clipboard API + fallback). Utilisable hors‑ligne.</div>
+
+  <script>
+    const templateHeader = `# ⚔️ HEATHEN HORD R4 — PROMPT DE COMMUNICATION (v10, FR‑INTÉGRAL)
+# Copiez ce bloc YAML, modifiez la section COMM, puis envoyez‑le directement à ChatGPT.
+# L'assistant mémorise les versions précédentes dans cette discussion pour générer :
+#   1️⃣ Un COURRIER LONG (message officiel avec résumé et historique de versions)
+#   2️⃣ Un MESSAGE COURT (notification de chat)
+# Il compare également avec la version précédente (si elle existe) pour produire un CHANGELOG.
+
+contexte:
+  rôle: "Assistant officiel de communication de l'alliance Heathen Hord"
+  jeu: "Last Z Survival Shooter"
+  rôle_auteur: "Vidou, R4 de l'alliance"
+  mission: >
+    Générer deux communications liées :
+      1. Un courrier long (texte principal, résumé interne, historique de versions)
+      2. Un message court annonçant le courrier.
+    Assurer le suivi de version dans la même discussion :
+      - Comparer le nouveau COMM avec le précédent
+      - Détecter les différences et produire un changelog (ajouts, suppressions, modifications)
+      - Mettre à jour l'historique de versions dans le courrier long.
+    Toujours refléter les valeurs Heathen Hord :
+    cohésion, discipline, stratégie, respect, solidarité.
+  langue_de_sortie:
+    description: "Langue dans laquelle générer les messages"
+    par_défaut: "FR"
+
+règles:
+  format_titre: "[emoji] [TYPE] — [THÈME] [VERSION]"
+  emoji:
+    ANNONCE: "🎖️"
+    TACTIQUE: "⚔️"
+    MOTIVATION: "💬"
+    DIPLOMATIE: "🕊️"
+    CÉLÉBRATION: "💎"
+  urgence:
+    OUI: "Ajouter 🔥 URGENT 🔥 et adopter un ton plus pressant"
+    NON: "Aucun effet particulier"
+  style:
+    - "Texte clair et aéré, lisible sur mobile"
+    - "Respecter TON et OBJECTIF"
+    - "La signature doit inclure AUTEUR"
+    - "Ajouter l'historique seulement si VERSION > v1"
+    - "Ajouter un changelog si une version précédente existe"
+    - "Message court = 2–4 lignes invitant à lire le courrier"
+    - "Langue de sortie selon LANG (par défaut : FR)"
+
+guides:
+  type:
+    ANNONCE: {emoji: "🎖️", ton: ["FACTUEL", "FÉDÉRATEUR"], style: "formel, respectueux"}
+    TACTIQUE: {emoji: "⚔️", ton: ["ÉNERGIQUE", "FÉDÉRATEUR"], style: "orienté action, motivant"}
+    MOTIVATION: {emoji: "💬", ton: ["ÉNERGIQUE", "FÉDÉRATEUR"], style: "positif, fédérateur"}
+    DIPLOMATIE: {emoji: "🕊️", ton: ["DIPLOMATIQUE", "FACTUEL"], style: "calme, poli"}
+    CÉLÉBRATION: {emoji: "💎", ton: ["ÉNERGIQUE", "FÉDÉRATEUR"], style: "festif, reconnaissant"}
+
+  ton:
+    ÉNERGIQUE: "Phrases courtes, verbes d'action, emojis dynamiques"
+    FÉDÉRATEUR: "Langage collectif : nous, ensemble, solidarité"
+    DIPLOMATIQUE: "Modération, formulations courtoises"
+    FACTUEL: "Neutre, concis, informatif"
+
+  guide_urgence:
+    OUI: "Style plus dynamique, mention explicite de l'urgence"
+    NON: "Style normal selon le TYPE"
+
+# ==========================================================
+# 🧩 MODIFIEZ CETTE SECTION AVANT ENVOI
+# ==========================================================
+COMM:
+`;
+
+    function buildYAML(){
+      const get = id => document.getElementById(id).value;
+      const ensureBullets = (txt)=>{
+        return txt.split(/\r?\n/).map(l=>{
+          l = l.trim();
+          if(!l) return null;
+          return l.startsWith('- ') ? l : '- ' + l;
+        }).filter(Boolean).join('\n');
+      };
+
+      const COMM =
+`  TYPE: "${get('type')}"
+  THÈME: "${get('theme') || "Bataille d'Arène"}"
+  OBJECTIF: "${get('objectif')}"
+  TON: "${get('ton')}"
+  URGENCE: "${get('urgence')}"
+  VERSION: "${get('version') || 'v10'}"
+  AUTEUR: "${get('auteur') || 'Vidou, R4 Heathen Hord'}"
+  LANG: "${get('lang') || 'FR'}"
+  DÉTAILS: |
+${ensureBullets(get('details')).split('\n').map(l=>'    '+l).join('\n')}
+  FORMAT: "${get('format')}"`;
+
+      return templateHeader + COMM + `
+
+# ==========================================================
+# 🧾 SORTIES ATTENDUES
+# ==========================================================
+# 1️⃣ COURRIER LONG
+#   - Titre complet avec emoji, TYPE, THÈME, VERSION
+#   - Corps conforme à TON, OBJECTIF et LANG
+#   - Signature avec AUTEUR
+#   - 💬 Résumé interne
+#   - 🧩 CHANGELOG (différences avec la version précédente)
+#   - 🧠 Historique des versions
+#
+# 2️⃣ MESSAGE COURT (CHAT)
+#   - Si URGENCE=OUI → inclure 🔥 URGENT 🔥
+#   - Mentionner THÈME et VERSION
+#   - 2–4 lignes maximum
+#   - Style et langue selon LANG et TYPE
+#   - Inciter les membres à lire le courrier
+`;
+    }
+
+    const out = document.getElementById('yamlOut');
+
+    document.getElementById('buildBtn').addEventListener('click', e=>{
+      e.preventDefault();
+      out.value = buildYAML();
+      out.scrollTop = 0;
+    });
+
+    document.getElementById('resetBtn').addEventListener('click', e=>{
+      e.preventDefault();
+      document.getElementById('type').value = 'TACTIQUE';
+      document.getElementById('theme').value = '';
+      document.getElementById('objectif').value = 'RAPPELER';
+      document.getElementById('ton').value = 'FÉDÉRATEUR';
+      document.getElementById('urgence').value = 'OUI';
+      document.getElementById('version').value = 'v10';
+      document.getElementById('auteur').value = 'Vidou, R4 Heathen Hord';
+      document.getElementById('lang').value = 'FR';
+      document.getElementById('details').value = "- Combattez le plus tard possible avant la réinitialisation du serveur\n- N'attaquez jamais un membre du même serveur\n- Restons unis pour grimper au classement ensemble\n- Gardez un canal ouvert pour la coordination d'équipe";
+      document.getElementById('format').value = 'COMPLET';
+      out.value='';
+    });
+
+    async function copyYAML(){
+      if(!out.value) out.value = buildYAML();
+      try{
+        await navigator.clipboard.writeText(out.value);
+        alert('✅ YAML copié dans le presse‑papiers !');
+        return;
+      }catch(e){}
+      out.focus();
+      out.select();
+      out.setSelectionRange(0, out.value.length);
+      try{
+        const ok = document.execCommand('copy');
+        alert(ok ? '✅ YAML copié dans le presse‑papiers !' : '❌ Échec de la copie — copiez manuellement.');
+      }catch(e){
+        alert('❌ Échec de la copie — copiez manuellement.');
+      }
+    }
+    document.getElementById('copyBtn').addEventListener('click', copyYAML);
+
+    function download(name, content, type='text/plain'){
+      const blob = new Blob([content], {type});
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = name;
+      document.body.appendChild(a);
+      a.click();
+      setTimeout(()=>{
+        URL.revokeObjectURL(a.href);
+        a.remove();
+      }, 500);
+    }
+    document.getElementById('downloadTxt').addEventListener('click', ()=>{
+      const y = out.value || buildYAML();
+      download('heathen-hord-prompt-v10-fr-integral.txt', y);
+    });
+    document.getElementById('downloadHtml').addEventListener('click', ()=>{
+      const html = document.documentElement.outerHTML;
+      download('heathen-hord-generateur-prompt-v10.5-fr-integral.html', html, 'text/html');
+    });
+  </script>
+</body>
+</html>
